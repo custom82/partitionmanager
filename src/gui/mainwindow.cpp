@@ -19,6 +19,7 @@
 #include "gui/resizevolumegroupdialog.h"
 #include "gui/filesystemsupportdialog.h"
 #include "gui/devicepropsdialog.h"
+#include "gui/badsectorrepairdialog.h"
 #include "gui/smartdialog.h"
 
 #include "config/configureoptionsdialog.h"
@@ -361,6 +362,13 @@ void MainWindow::setupActions()
     smartStatusDevice->setToolTip(xi18nc("@info:tooltip", "Show SMART status"));
     smartStatusDevice->setStatusTip(xi18nc("@info:status", "Show the device's SMART status if supported"));
 
+    QAction* repairBadSectorDevice = actionCollection()->addAction(QStringLiteral("repairBadSectorDevice"));
+    connect(repairBadSectorDevice, &QAction::triggered, this, &MainWindow::onRepairBadSectorDevice);
+    repairBadSectorDevice->setEnabled(false);
+    repairBadSectorDevice->setText(xi18nc("@action:inmenu", "Repair Bad Sector"));
+    repairBadSectorDevice->setToolTip(xi18nc("@info:tooltip", "Analyze or repair bad sectors"));
+    repairBadSectorDevice->setStatusTip(xi18nc("@info:status", "Analyze disk sectors and attempt repairs."));
+
     QAction* propertiesDevice = actionCollection()->addAction(QStringLiteral("propertiesDevice"));
     connect(propertiesDevice, &QAction::triggered, [this] {onPropertiesDevice({});});
     propertiesDevice->setEnabled(false);
@@ -595,6 +603,10 @@ void MainWindow::enableActions()
             ->setEnabled(pmWidget().selectedDevice() != nullptr && pmWidget().selectedDevice()->type() == Device::Type::Disk_Device &&
                                                         pmWidget().selectedDevice()->smartStatus().isValid());
     actionCollection()->action(QStringLiteral("smartStatusDevice"))
+            ->setVisible(pmWidget().selectedDevice() != nullptr && pmWidget().selectedDevice()->type() == Device::Type::Disk_Device);
+    actionCollection()->action(QStringLiteral("repairBadSectorDevice"))
+            ->setEnabled(pmWidget().selectedDevice() != nullptr && pmWidget().selectedDevice()->type() == Device::Type::Disk_Device);
+    actionCollection()->action(QStringLiteral("repairBadSectorDevice"))
             ->setVisible(pmWidget().selectedDevice() != nullptr && pmWidget().selectedDevice()->type() == Device::Type::Disk_Device);
     actionCollection()->action(QStringLiteral("propertiesDevice"))
             ->setEnabled(pmWidget().selectedDevice() != nullptr);
@@ -1343,6 +1355,16 @@ void MainWindow::onSmartStatusDevice()
         QPointer<SmartDialog> dlg = new SmartDialog(this, *pmWidget().selectedDevice());
         dlg->exec();
         delete dlg;
+    }
+}
+
+void MainWindow::onRepairBadSectorDevice()
+{
+    Q_ASSERT(pmWidget().selectedDevice());
+
+    if (pmWidget().selectedDevice()) {
+        QPointer<BadSectorRepairDialog> dlg = new BadSectorRepairDialog(this, *pmWidget().selectedDevice());
+        dlg->exec();
     }
 }
 

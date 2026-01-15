@@ -13,6 +13,7 @@
 #include <QFrame>
 #include <QGridLayout>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QVBoxLayout>
 
 #include <KLocalizedString>
@@ -29,31 +30,53 @@ BadSectorRepairDialog::BadSectorRepairDialog(QWidget* parent, Device& device)
     gridLayout->setSpacing(2);
     gridLayout->setContentsMargins(0, 0, 0, 0);
 
-    constexpr int rows = 10;
-    constexpr int columns = 10;
+    constexpr int rows = 20;
+    constexpr int columns = 20;
+    constexpr int cellSize = 16;
     constexpr int totalCells = rows * columns;
 
+    for (int index = 0; index < totalCells; ++index) {
+        auto* cell = new QFrame(gridWidget);
+        cell->setFixedSize(cellSize, cellSize);
+        cell->setStyleSheet(QStringLiteral("background-color: #bdbdbd; border: 1px solid #4a4a4a;"));
+        gridLayout->addWidget(cell, index / columns, index % columns);
+        m_Cells.append(cell);
+    }
+
+    auto* scrollArea = new QScrollArea(this);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setWidget(gridWidget);
+    mainLayout->addWidget(scrollArea);
+
+    auto* buttonBox = new QDialogButtonBox(this);
+    m_AnalyzeButton = buttonBox->addButton(xi18nc("@action:button", "Analyze"), QDialogButtonBox::ActionRole);
+    m_RepairButton = buttonBox->addButton(xi18nc("@action:button", "Repair"), QDialogButtonBox::AcceptRole);
+    m_RepairButton->setEnabled(false);
+    connect(m_AnalyzeButton, &QPushButton::clicked, this, &BadSectorRepairDialog::analyzeSectors);
+    connect(m_RepairButton, &QPushButton::clicked, this, &QDialog::accept);
+    mainLayout->addWidget(buttonBox);
+
+    setMinimumSize(QSize(480, 360));
+}
+
+void BadSectorRepairDialog::analyzeSectors()
+{
+    const int totalCells = m_Cells.size();
     for (int index = 0; index < totalCells; ++index) {
         const double ratio = totalCells > 1
             ? static_cast<double>(index) / static_cast<double>(totalCells - 1)
             : 0.0;
         QColor color;
         color.setRgbF(ratio, 1.0 - ratio, 0.0);
-
-        auto* cell = new QFrame(gridWidget);
-        cell->setFixedSize(12, 12);
-        cell->setStyleSheet(QStringLiteral("background-color: %1; border: 1px solid #4a4a4a;")
-                                .arg(color.name()));
-        gridLayout->addWidget(cell, index / columns, index % columns);
+        m_Cells.at(index)->setStyleSheet(QStringLiteral("background-color: %1; border: 1px solid #4a4a4a;")
+                                             .arg(color.name()));
     }
 
-    mainLayout->addWidget(gridWidget, 0, Qt::AlignCenter);
-
-    auto* buttonBox = new QDialogButtonBox(this);
-    buttonBox->addButton(xi18nc("@action:button", "Analyze"), QDialogButtonBox::ActionRole);
-    auto* repairButton = buttonBox->addButton(xi18nc("@action:button", "Repair"), QDialogButtonBox::AcceptRole);
-    connect(repairButton, &QPushButton::clicked, this, &QDialog::accept);
-    mainLayout->addWidget(buttonBox);
-
-    setMinimumSize(sizeHint());
+    if (m_AnalyzeButton) {
+        m_AnalyzeButton->setEnabled(false);
+    }
+    if (m_RepairButton) {
+        m_RepairButton->setEnabled(true);
+    }
 }

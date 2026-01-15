@@ -14,6 +14,7 @@ set(GUI_SRC
     gui/createvolumegroupdialog.cpp gui/createvolumegroupdialog.h
     gui/devicepropsdialog.cpp gui/devicepropsdialog.h
     gui/devicepropswidget.cpp gui/devicepropswidget.h
+    gui/badsectorrepairdialog.cpp gui/badsectorrepairdialog.h
     gui/editmountpointdialog.cpp gui/editmountpointdialog.h
     gui/editmountpointdialogwidget.cpp gui/editmountpointdialogwidget.h
     gui/editmountoptionsdialog.cpp gui/editmountoptionsdialog.h

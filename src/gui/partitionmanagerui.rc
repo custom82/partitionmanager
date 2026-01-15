@@ -43,6 +43,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
             <Action name="removeVolumeGroup"/>
             <separator/>
             <Action name="smartStatusDevice"/>
+            <Action name="repairBadSectorDevice"/>
             <Action name="propertiesDevice"/>
         </Menu>
         <Menu name="tools">
